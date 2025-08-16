@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: portfolio-config
+  namespace: portfolio
+data:
+  api-url: "https://api.yourportfolio.com"
+  reveal-cdn: "https://cdn.jsdelivr.net/npm/reveal.js"
+  max-upload-size: "10485760"
+  cache-ttl: "3600"
+  analytics-enabled: "true"
