@@ -24,6 +24,8 @@ jobs:
   deploy:
     name: Deploy to Server
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     environment: ${{ github.event.inputs.environment || 'production' }}
     steps:
       - uses: actions/checkout@v4
@@ -92,6 +94,9 @@ jobs:
     runs-on: ubuntu-latest
     if: false  # Enable this if you prefer registry-based deployment
     environment: production
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
       
