@@ -1,8 +1,8 @@
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: 'npm start',
-      startServerReadyPattern: 'ready on',
+      startServerCommand: 'node .next/standalone/server.js',
+      startServerReadyPattern: 'Ready in',
       url: [
         'http://localhost:3000/',
         'http://localhost:3000/projects',

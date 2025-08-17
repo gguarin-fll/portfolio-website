@@ -113,7 +113,7 @@ jobs:
           npm install -g @lhci/cli
           lhci autorun --config=.lighthouserc.js || echo "::warning::Lighthouse CI failed"
         env:
-          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN || secrets.GITHUB_TOKEN }}
       
       - name: Upload Lighthouse results
         uses: actions/upload-artifact@v4
