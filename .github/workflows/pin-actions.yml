@@ -15,10 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Pin GitHub Actions
-        uses: step-security/pin-github-action@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          node-version: '20'
+      
+      - name: Pin GitHub Actions
+        run: |
+          npx -y @stepsecurity/secure-repo pin
           
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
