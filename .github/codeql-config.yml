@@ -1,0 +1,15 @@
+name: "CodeQL config"
+
+# Paths to ignore during analysis
+paths-ignore:
+  - node_modules
+  - .next
+  - out
+  - coverage
+
+# Query filters to customize analysis
+query-filters:
+  - exclude:
+      id: js/actions/unpinned-tag
+      # We use Dependabot to manage action versions safely
+      # Pinning to SHA makes maintenance harder
