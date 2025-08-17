@@ -4,45 +4,73 @@ A modern, containerized portfolio website built with Next.js, featuring Reveal.j
 
 ## 🚀 Features
 
+### Core Features
 - **Modern Tech Stack**: Next.js 14, TypeScript, Tailwind CSS
 - **Presentations**: Integrated Reveal.js for interactive presentations
 - **Data Visualization**: Charts and analytics with Chart.js
 - **Container Ready**: Docker and Kubernetes configurations included
-- **CI/CD Pipeline**: GitHub Actions workflow for automated deployment
 - **Responsive Design**: Mobile-first approach with dark mode support
+
+### DevOps & Security
+- **CI/CD Pipeline**: 11 GitHub Actions workflows for complete automation
+- **Security Scanning**: Comprehensive vulnerability detection (CodeQL, Trivy, Semgrep, Snyk)
+- **Container Security**: Multi-stage builds, non-root user, security contexts
+- **SSL/TLS Management**: Let's Encrypt integration with auto-renewal
+- **Dependency Management**: Automated updates via Dependabot
+- **Code Quality**: ESLint, TypeScript strict mode, automated testing
+
+## 🏃 Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/gguarin-fll/portfolio-website.git
+cd portfolio-website
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Open http://localhost:3000
+```
 
 ## 📁 Project Structure
 
 ```
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   ├── analytics/         # Analytics page
-│   ├── presentations/     # Presentations page
-│   └── projects/          # Projects page
-├── components/            # React components
-├── data/                  # Portfolio data
-├── k8s/                   # Kubernetes manifests
-├── public/                # Static assets
-│   └── presentations/     # Reveal.js presentations
-└── types/                 # TypeScript types
+├── .github/workflows/     # CI/CD pipelines (11 workflows)
+├── app/                   # Next.js app directory
+│   ├── api/              # API routes
+│   ├── analytics/        # Analytics page
+│   ├── presentations/    # Presentations page
+│   └── projects/         # Projects page
+├── components/           # React components
+├── data/                 # Portfolio data
+├── k8s/                  # Kubernetes manifests
+├── nginx/                # Nginx configuration
+├── public/               # Static assets
+│   └── presentations/    # Reveal.js presentations
+├── scripts/              # Utility scripts (SSL, deployment)
+└── types/                # TypeScript types
 ```
 
-## 🛠️ Local Development
+## 🛠️ Development
 
 ### Prerequisites
 - Node.js 20+
 - npm or yarn
-- Docker (optional)
-- Kubernetes cluster (optional)
+- Docker (optional for containerized development)
 
-### Installation
-
+### Local Development
 ```bash
 # Install dependencies
 npm install
 
 # Run development server
 npm run dev
+
+# Run tests
+npm test
 
 # Build for production
 npm run build
@@ -51,9 +79,74 @@ npm run build
 npm start
 ```
 
+### Environment Variables
+Create `.env.local` for development:
+
+```env
+# Redis Configuration (REQUIRED in production)
+REDIS_PASSWORD=your_secure_redis_password_here
+
+# Application Configuration (optional)
+NEXT_PUBLIC_API_URL=https://api.yourportfolio.com
+NEXT_PUBLIC_ANALYTICS_ID=your-analytics-id
+NODE_ENV=production
+```
+
+**Important**: `REDIS_PASSWORD` is required in production. The application will fail to start without it.
+
+## 📊 Content Management
+
+### Adding Projects
+Edit `data/portfolio-data.ts`:
+```typescript
+{
+  id: 'unique-id',
+  title: 'Project Name',
+  description: 'Short description',
+  technologies: ['React', 'Node.js'],
+  // ...
+}
+```
+
+### Adding Presentations
+1. Add markdown file to `public/presentations/`
+2. Update `data/portfolio-data.ts` with presentation metadata
+
+Presentations use Reveal.js markdown format:
+```markdown
+# Slide 1
+Content
+
+---
+
+# Slide 2
+Content
+
+--
+
+## Vertical Slide
+```
+
+### Adding Analytics
+Configure charts in `data/portfolio-data.ts`:
+```typescript
+{
+  id: 'chart-id',
+  title: 'Chart Title',
+  chartType: 'bar',
+  data: { /* chart data */ }
+}
+```
+
+## 🎨 Customization
+
+- **Tailwind Config**: `tailwind.config.ts`
+- **Global Styles**: `app/globals.css`
+- **Component Styles**: Use Tailwind classes inline
+
 ## 🐳 Docker Deployment
 
-### Development
+### Development Environment
 ```bash
 # Build and run with docker compose
 docker compose build
@@ -66,28 +159,31 @@ docker compose logs -f
 docker compose down
 ```
 
-### Production
+### Production Environment
 ```bash
+# Set required environment variables
+export REDIS_PASSWORD=your_secure_password
+
 # Build production image
 docker compose -f docker-compose.prod.yml build
 
-# Run production stack with SSL
+# Run production stack (includes Nginx, Redis, Next.js)
 docker compose -f docker-compose.prod.yml up -d
-
-# The production stack includes:
-# - Next.js application (port 3000)
-# - Redis cache
-# - Nginx with SSL/TLS (ports 80, 443)
 ```
+
+The production stack includes:
+- Next.js application (port 3000)
+- Redis cache with password authentication
+- Nginx with SSL/TLS termination (ports 80, 443)
 
 ## ☸️ Kubernetes Deployment
 
-### Deploy to Kubernetes
+### Deploy to Cluster
 ```bash
 # Create namespace
 kubectl apply -f k8s/namespace.yaml
 
-# Deploy frontend
+# Deploy frontend application
 kubectl apply -f k8s/frontend/
 
 # Configure ingress
@@ -103,96 +199,11 @@ kubectl get services -n portfolio
 # Manual scaling
 kubectl scale deployment portfolio-frontend --replicas=5 -n portfolio
 
-# Auto-scaling is configured via HPA
+# Auto-scaling via HPA
 kubectl get hpa -n portfolio
 ```
 
-## 🔄 CI/CD Pipeline
-
-The GitHub Actions workflow automatically:
-1. Runs tests and linting
-2. Builds Docker images
-3. Pushes to container registry
-4. Deploys to Kubernetes cluster
-
-### Required Secrets
-- `DOCKER_USERNAME`: Docker Hub username
-- `DOCKER_PASSWORD`: Docker Hub password
-- `KUBECONFIG`: Base64 encoded kubeconfig
-
-## 📊 Adding Content
-
-### Projects
-Edit `data/portfolio-data.ts` to add new projects:
-```typescript
-{
-  id: 'unique-id',
-  title: 'Project Name',
-  description: 'Short description',
-  technologies: ['React', 'Node.js'],
-  // ...
-}
-```
-
-### Presentations
-1. Add markdown file to `public/presentations/`
-2. Update `data/portfolio-data.ts` with presentation metadata
-
-### Analytics
-Configure charts in `data/portfolio-data.ts`:
-```typescript
-{
-  id: 'chart-id',
-  title: 'Chart Title',
-  chartType: 'bar',
-  data: { /* chart data */ }
-}
-```
-
-## 🎨 Customization
-
-### Styling
-- Tailwind config: `tailwind.config.ts`
-- Global styles: `app/globals.css`
-- Component styles: Use Tailwind classes
-
-### Environment Variables
-Create `.env` for production:
-```env
-# Redis Configuration
-REDIS_PASSWORD=your_secure_redis_password_here
-
-# Application Configuration (optional)
-NEXT_PUBLIC_API_URL=https://api.yourportfolio.com
-NEXT_PUBLIC_ANALYTICS_ID=your-analytics-id
-```
-
-## 📝 Presentation Format
-
-Presentations use Reveal.js markdown format:
-```markdown
-# Slide 1
-Content
-
----
-
-# Slide 2
-Content
-
----
-
-## Vertical Slide
-Use `--` for vertical slides
-```
-
-## 🔧 Monitoring
-
-### Health Check
-```bash
-curl http://localhost:3000/api/health
-```
-
-### Kubernetes Monitoring
+### Monitoring
 ```bash
 # Check pod logs
 kubectl logs -f deployment/portfolio-frontend -n portfolio
@@ -201,9 +212,9 @@ kubectl logs -f deployment/portfolio-frontend -n portfolio
 kubectl top pods -n portfolio
 ```
 
-## 🌐 Production Deployment with SSL
+## 🌐 Production Server Setup
 
-### Initial Setup
+### Initial Server Setup
 ```bash
 # SSH into your server
 ssh root@your-server-ip
@@ -212,19 +223,22 @@ ssh root@your-server-ip
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 
-# Install Certbot for SSL certificates
-apt update && apt install -y certbot
+# Install Docker Compose
+apt update && apt install -y docker-compose-plugin
 
 # Clone repository
-git clone git@github.com:gguarin-fll/portfolio-website.git
+git clone https://github.com/gguarin-fll/portfolio-website.git
 cd portfolio-website
 ```
 
-### SSL Certificate Setup
+### SSL Certificate Configuration
 
-#### Option 1: Let's Encrypt (Production)
+#### Option 1: Let's Encrypt (Recommended for Production)
 ```bash
-# Generate Let's Encrypt certificate for your domain
+# Install Certbot
+apt install -y certbot
+
+# Generate certificate
 certbot certonly --standalone \
   -d yourdomain.com \
   -d www.yourdomain.com \
@@ -232,21 +246,22 @@ certbot certonly --standalone \
   --agree-tos \
   --email admin@yourdomain.com
 
-# Certificates will be stored in /etc/letsencrypt/live/yourdomain.com/
+# Setup automatic renewal
+./scripts/setup-cron.sh
 ```
 
-#### Option 2: Self-Signed (Development/Testing)
+#### Option 2: Self-Signed (Development Only)
 ```bash
-# Use the included script to generate self-signed certificates
 ./scripts/rotate-ssl.sh --type self-signed --force
 ```
 
-### Deploy Production Stack
+### Deploy to Production
 ```bash
-# Build production image
-docker compose -f docker-compose.prod.yml build
+# Set environment variables
+export REDIS_PASSWORD=your_secure_password
 
-# Run production stack with Nginx SSL
+# Build and deploy
+docker compose -f docker-compose.prod.yml build
 docker compose -f docker-compose.prod.yml up -d
 
 # Verify deployment
@@ -254,52 +269,12 @@ docker ps
 curl -I https://yourdomain.com
 ```
 
-### SSL Certificate Management
-
-#### Check Certificate Status
-```bash
-# Check certificate expiry
-./scripts/rotate-ssl.sh --check
-
-# View certificate details
-openssl x509 -in /etc/letsencrypt/live/yourdomain.com/cert.pem -text -noout
-```
-
-#### Automatic Renewal Setup
-```bash
-# Setup automated certificate renewal
-./scripts/setup-cron.sh
-
-# Or manually add cron job for Let's Encrypt
-(crontab -l 2>/dev/null; echo "0 3 * * * /root/portfolio-website/scripts/renew-letsencrypt.sh") | crontab -
-```
-
-#### Manual Certificate Rotation
-```bash
-# Force rotate certificate
-./scripts/rotate-ssl.sh --force
-
-# Rotate with Let's Encrypt
-./scripts/rotate-ssl.sh --type letsencrypt \
-  --domain yourdomain.com \
-  --email admin@yourdomain.com
-```
-
-### Nginx Configuration
-The production Nginx configuration (`nginx/nginx.conf`) includes:
-- HTTP to HTTPS redirect
-- SSL/TLS with modern cipher suites
-- Security headers (HSTS, X-Frame-Options, etc.)
-- Rate limiting
-- Gzip compression
-- Reverse proxy to Next.js application
-
-### Updating the Application
+### Updating Production
 ```bash
 # Pull latest changes
 git pull
 
-# Rebuild and restart with zero downtime
+# Rebuild and restart (zero downtime)
 docker compose -f docker-compose.prod.yml build
 docker compose -f docker-compose.prod.yml up -d
 
@@ -307,41 +282,107 @@ docker compose -f docker-compose.prod.yml up -d
 docker compose -f docker-compose.prod.yml logs -f
 ```
 
-## 🚀 Production Checklist
+## 🔄 CI/CD Pipeline
 
-- [x] Deploy to cloud server (Linode/DigitalOcean/AWS)
-- [x] Configure domain DNS
-- [x] Set up Nginx with SSL/TLS termination
-- [x] Install Let's Encrypt certificates
-- [x] Configure automatic certificate renewal
-- [x] Set up security headers (HSTS, CSP, etc.)
-- [x] Configure firewall (ports 22, 80, 443)
-- [x] Implement rate limiting
-- [ ] Set up monitoring and alerts
-- [ ] Configure automated backups
-- [ ] Test rollback procedures
+### GitHub Actions Workflows
+
+#### Core Workflows
+- **CI/CD Pipeline** (`ci-cd.yml`): Tests, builds, and deploys on push
+- **Security Scanning** (`security.yml`): Comprehensive vulnerability detection
+- **Pull Request Checks** (`pr-checks.yml`): Validates all pull requests
+- **Release Management** (`release.yml`): Automated versioning and changelog
+
+#### Maintenance Workflows
+- **Dependency Updates** (`dependency-update.yml`): Weekly automated updates
+- **Resource Cleanup** (`cleanup.yml`): Removes old artifacts and images
+- **Action Pinning** (`pin-actions.yml`): Security hardening for actions
+
+### Required GitHub Secrets
+Configure in Settings → Secrets and variables → Actions:
+
+- `DOCKER_USERNAME`: Docker Hub username
+- `DOCKER_PASSWORD`: Docker Hub access token
+- `REDIS_PASSWORD`: Redis password for production
+- `KUBECONFIG`: Base64 encoded kubeconfig (optional, for K8s)
+- `CODECOV_TOKEN`: Code coverage reporting (optional)
+- `SNYK_TOKEN`: Vulnerability scanning (optional)
+- `SLACK_WEBHOOK`: Deployment notifications (optional)
 
 ## 🔒 Security Features
 
+### Infrastructure Security
 - **SSL/TLS**: Let's Encrypt certificates with auto-renewal
-- **Security Headers**: HSTS, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
-- **Rate Limiting**: Protection against brute force attacks
+- **Security Headers**: HSTS, X-Frame-Options, X-Content-Type-Options
+- **Rate Limiting**: 10 req/s for API, 30 req/s general
 - **TLS Protocols**: TLSv1.2 and TLSv1.3 only
-- **Certificate Backup**: Automatic backup before rotation
-- **Zero-Downtime Updates**: Graceful reloads during certificate rotation
+- **Certificate Rotation**: Automated with backup and rollback
 
-## 📄 License
+### Application Security
+- **Container Hardening**: Non-root user, read-only filesystem
+- **Kubernetes Security**: Pod security contexts, seccomp profiles
+- **Secret Management**: Environment variable validation, no hardcoded secrets
+- **XSS Prevention**: Input sanitization, secure DOM manipulation
+- **Dependency Scanning**: Multiple automated vulnerability scanners
 
-MIT
+### CI/CD Security
+- **Workflow Permissions**: Least-privilege for all actions
+- **SARIF Integration**: Security findings in GitHub Security tab
+- **Automated Updates**: Dependabot for safe dependency updates
+- **Supply Chain Security**: Optional action pinning to SHA
+
+## 🔧 Monitoring & Health
+
+### Health Check Endpoint
+```bash
+curl http://localhost:3000/api/health
+```
+
+### Docker Logs
+```bash
+# Development
+docker compose logs -f
+
+# Production
+docker compose -f docker-compose.prod.yml logs -f portfolio
+```
+
+### SSL Certificate Status
+```bash
+# Check expiry
+./scripts/rotate-ssl.sh --check
+
+# View details
+openssl x509 -in /etc/letsencrypt/live/yourdomain.com/cert.pem -text -noout
+```
+
+## 📋 Production Checklist
+
+- [x] Deploy to cloud server (Linode/DigitalOcean/AWS)
+- [x] Configure domain DNS records
+- [x] Set up Nginx with SSL/TLS termination
+- [x] Install Let's Encrypt certificates
+- [x] Configure automatic certificate renewal
+- [x] Set up security headers and rate limiting
+- [x] Configure firewall (ports 22, 80, 443)
+- [x] Set REDIS_PASSWORD environment variable
+- [ ] Set up monitoring and alerts
+- [ ] Configure automated backups
+- [ ] Test disaster recovery procedures
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open pull request
 
-## 🔗 Repository
+## 📄 License
 
-[https://github.com/gguarin-fll/portfolio-website](https://github.com/gguarin-fll/portfolio-website)
+MIT License - see [LICENSE](LICENSE) file for details
+
+## 🔗 Links
+
+- **Repository**: [https://github.com/gguarin-fll/portfolio-website](https://github.com/gguarin-fll/portfolio-website)
+- **Documentation**: [SSL-ROTATION.md](SSL-ROTATION.md)
+- **Issues**: [https://github.com/gguarin-fll/portfolio-website/issues](https://github.com/gguarin-fll/portfolio-website/issues)
