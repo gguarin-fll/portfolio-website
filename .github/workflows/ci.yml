@@ -53,7 +53,7 @@ jobs:
       
       - name: Upload coverage reports
         if: success()
-        uses: codecov/codecov-action@35425e3b7c4d0ee2042a86f777843ca443d48529
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
