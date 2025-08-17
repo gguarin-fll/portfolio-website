@@ -71,8 +71,13 @@ docker compose down
 # Build production image
 docker compose -f docker-compose.prod.yml build
 
-# Run production stack
+# Run production stack with SSL
 docker compose -f docker-compose.prod.yml up -d
+
+# The production stack includes:
+# - Next.js application (port 3000)
+# - Redis cache
+# - Nginx with SSL/TLS (ports 80, 443)
 ```
 
 ## ☸️ Kubernetes Deployment
@@ -152,8 +157,12 @@ Configure charts in `data/portfolio-data.ts`:
 - Component styles: Use Tailwind classes
 
 ### Environment Variables
-Create `.env.local`:
+Create `.env` for production:
 ```env
+# Redis Configuration
+REDIS_PASSWORD=your_secure_redis_password_here
+
+# Application Configuration (optional)
 NEXT_PUBLIC_API_URL=https://api.yourportfolio.com
 NEXT_PUBLIC_ANALYTICS_ID=your-analytics-id
 ```
@@ -192,7 +201,7 @@ kubectl logs -f deployment/portfolio-frontend -n portfolio
 kubectl top pods -n portfolio
 ```
 
-## 🌐 Cloud Deployment (Linode/VPS)
+## 🌐 Production Deployment with SSL
 
 ### Initial Setup
 ```bash
@@ -203,67 +212,123 @@ ssh root@your-server-ip
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 
+# Install Certbot for SSL certificates
+apt update && apt install -y certbot
+
 # Clone repository
 git clone git@github.com:gguarin-fll/portfolio-website.git
 cd portfolio-website
-
-# Build and run
-docker compose build
-docker compose up -d
 ```
 
-### Configure Nginx Reverse Proxy
+### SSL Certificate Setup
+
+#### Option 1: Let's Encrypt (Production)
 ```bash
-# Install Nginx and Certbot
-apt update
-apt install nginx certbot python3-certbot-nginx -y
+# Generate Let's Encrypt certificate for your domain
+certbot certonly --standalone \
+  -d yourdomain.com \
+  -d www.yourdomain.com \
+  --non-interactive \
+  --agree-tos \
+  --email admin@yourdomain.com
 
-# Create Nginx config
-cat > /etc/nginx/sites-available/portfolio << 'EOF'
-server {
-    listen 80;
-    server_name yourdomain.com www.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-EOF
-
-# Enable site
-ln -s /etc/nginx/sites-available/portfolio /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl reload nginx
-
-# Set up SSL
-certbot --nginx -d yourdomain.com -d www.yourdomain.com
+# Certificates will be stored in /etc/letsencrypt/live/yourdomain.com/
 ```
+
+#### Option 2: Self-Signed (Development/Testing)
+```bash
+# Use the included script to generate self-signed certificates
+./scripts/rotate-ssl.sh --type self-signed --force
+```
+
+### Deploy Production Stack
+```bash
+# Build production image
+docker compose -f docker-compose.prod.yml build
+
+# Run production stack with Nginx SSL
+docker compose -f docker-compose.prod.yml up -d
+
+# Verify deployment
+docker ps
+curl -I https://yourdomain.com
+```
+
+### SSL Certificate Management
+
+#### Check Certificate Status
+```bash
+# Check certificate expiry
+./scripts/rotate-ssl.sh --check
+
+# View certificate details
+openssl x509 -in /etc/letsencrypt/live/yourdomain.com/cert.pem -text -noout
+```
+
+#### Automatic Renewal Setup
+```bash
+# Setup automated certificate renewal
+./scripts/setup-cron.sh
+
+# Or manually add cron job for Let's Encrypt
+(crontab -l 2>/dev/null; echo "0 3 * * * /root/portfolio-website/scripts/renew-letsencrypt.sh") | crontab -
+```
+
+#### Manual Certificate Rotation
+```bash
+# Force rotate certificate
+./scripts/rotate-ssl.sh --force
+
+# Rotate with Let's Encrypt
+./scripts/rotate-ssl.sh --type letsencrypt \
+  --domain yourdomain.com \
+  --email admin@yourdomain.com
+```
+
+### Nginx Configuration
+The production Nginx configuration (`nginx/nginx.conf`) includes:
+- HTTP to HTTPS redirect
+- SSL/TLS with modern cipher suites
+- Security headers (HSTS, X-Frame-Options, etc.)
+- Rate limiting
+- Gzip compression
+- Reverse proxy to Next.js application
 
 ### Updating the Application
 ```bash
 # Pull latest changes
 git pull
 
-# Rebuild and restart
-docker compose build
-docker compose up -d
+# Rebuild and restart with zero downtime
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+
+# View logs
+docker compose -f docker-compose.prod.yml logs -f
 ```
 
 ## 🚀 Production Checklist
 
 - [x] Deploy to cloud server (Linode/DigitalOcean/AWS)
 - [x] Configure domain DNS
-- [x] Set up Nginx reverse proxy
-- [x] Install SSL certificates with Certbot
+- [x] Set up Nginx with SSL/TLS termination
+- [x] Install Let's Encrypt certificates
+- [x] Configure automatic certificate renewal
+- [x] Set up security headers (HSTS, CSP, etc.)
 - [x] Configure firewall (ports 22, 80, 443)
+- [x] Implement rate limiting
 - [ ] Set up monitoring and alerts
 - [ ] Configure automated backups
 - [ ] Test rollback procedures
+
+## 🔒 Security Features
+
+- **SSL/TLS**: Let's Encrypt certificates with auto-renewal
+- **Security Headers**: HSTS, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
+- **Rate Limiting**: Protection against brute force attacks
+- **TLS Protocols**: TLSv1.2 and TLSv1.3 only
+- **Certificate Backup**: Automatic backup before rotation
+- **Zero-Downtime Updates**: Graceful reloads during certificate rotation
 
 ## 📄 License
 
