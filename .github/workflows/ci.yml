@@ -53,11 +53,13 @@ jobs:
       
       - name: Upload coverage reports
         if: success()
+        continue-on-error: true
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
           fail_ci_if_error: false
+          verbose: true
 
   # Build
   build:
@@ -118,9 +120,14 @@ jobs:
       - name: Upload Lighthouse results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: lighthouse-results
-          path: .lighthouseci/
+          path: |
+            .lighthouseci/
+            *.report.html
+            *.report.json
+          if-no-files-found: warn
           retention-days: 7
 
   # Build Docker Image
