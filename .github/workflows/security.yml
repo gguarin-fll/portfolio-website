@@ -21,7 +21,7 @@ jobs:
     name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@v4
       
       - name: Run npm audit
         run: |
@@ -29,7 +29,7 @@ jobs:
           npm audit --json > npm-audit-report.json || true
       
       - name: Upload npm audit report
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: npm-audit-report
@@ -37,7 +37,7 @@ jobs:
           retention-days: 30
       
       - name: Run Snyk Security Scan
-        uses: snyk/actions/node@b98d498629f1c368650224d6d212bf7dfa89e4bf
+        uses: snyk/actions/node@master
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -49,13 +49,13 @@ jobs:
     name: Docker Image Security Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@v4
       
       - name: Build Docker image
         run: docker build -t portfolio-website:scan .
       
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@18f2510c396753b69d9d7ba2cc3d62e6e40dc289
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: portfolio-website:scan
           format: 'sarif'
@@ -63,7 +63,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
       
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@662472033e021d55d94146f66f6058822b0b39fd
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         continue-on-error: true
         with:
@@ -71,7 +71,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Run Grype vulnerability scanner
-        uses: anchore/scan-action@5df630c4e77c69a0119dcdd145f840e91e8301a8
+        uses: anchore/scan-action@v3
         with:
           image: portfolio-website:scan
           fail-build: false
@@ -82,18 +82,18 @@ jobs:
     name: Secret Scanning
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@4778a28c2fb96fd90ff81d1b9ad02eafc58e5b89
+        uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           extra_args: --debug --only-verified
       
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@44c470d8c17b97a318e88c1e45612d9fccc59b6a
+        uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -102,10 +102,10 @@ jobs:
     name: SAST Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
       
@@ -118,7 +118,7 @@ jobs:
           npx eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-security-report.json || true
       
       - name: Upload ESLint security report
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: eslint-security-report
@@ -126,7 +126,7 @@ jobs:
           retention-days: 30
       
       - name: Run Semgrep
-        uses: returntocorp/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d
+        uses: returntocorp/semgrep-action@v1
         with:
           config: >-
             p/security-audit
@@ -140,10 +140,10 @@ jobs:
     name: License Compliance
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
       
@@ -156,7 +156,7 @@ jobs:
           cat license-report.txt
       
       - name: Upload license report
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        uses: actions/upload-artifact@v4
         with:
           name: license-report
           path: license-report.txt

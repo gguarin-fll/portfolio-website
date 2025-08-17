@@ -1,0 +1,47 @@
+name: Pin GitHub Actions
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Pin GitHub Actions
+        uses: step-security/pin-github-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: pin GitHub Actions to commit SHA'
+          title: '🔒 Pin GitHub Actions to commit SHA'
+          body: |
+            ## Pin GitHub Actions
+            
+            This PR pins GitHub Actions to their full commit SHA for improved security.
+            
+            ### Why pin actions?
+            - Prevents supply chain attacks from compromised action tags
+            - Ensures reproducible builds
+            - Protects against malicious updates
+            
+            ### Notes
+            - Dependabot will still create PRs to update these pinned versions
+            - Review each update carefully before merging
+          branch: actions/pin-versions
+          delete-branch: true
+          labels: |
+            security
+            dependencies
+            github-actions
