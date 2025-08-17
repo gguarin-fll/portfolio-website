@@ -1,0 +1,146 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly on Monday at 3 AM
+  workflow_dispatch:
+
+jobs:
+  # Update dependencies with Dependabot
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Update npm dependencies
+        run: |
+          npm update --save
+          npm audit fix --force || true
+      
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Pull Request
+        if: steps.check-changes.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update npm dependencies'
+          title: '🔄 Update npm dependencies'
+          body: |
+            ## Automated Dependency Update
+            
+            This PR contains automated dependency updates.
+            
+            ### Changes
+            - Updated npm dependencies to latest compatible versions
+            - Applied security fixes where available
+            
+            ### Checklist
+            - [ ] CI/CD tests pass
+            - [ ] No breaking changes identified
+            - [ ] Application builds successfully
+            - [ ] Manual testing completed (if needed)
+          branch: deps/npm-updates
+          delete-branch: true
+          labels: |
+            dependencies
+            automated
+
+  # Check for outdated dependencies
+  check-outdated:
+    name: Check Outdated Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check outdated packages
+        run: |
+          echo "## Outdated Dependencies Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm outdated || true >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check security vulnerabilities
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Security Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm audit >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  # Update Docker base images
+  update-docker-images:
+    name: Update Docker Base Images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Update Dockerfile base images
+        run: |
+          # Update Node.js Alpine version
+          sed -i 's/FROM node:[0-9]*-alpine/FROM node:20-alpine/g' Dockerfile
+          
+          # Update nginx Alpine version
+          sed -i 's/FROM nginx:[0-9.]*-alpine/FROM nginx:alpine/g' Dockerfile || true
+      
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Pull Request
+        if: steps.check-changes.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update Docker base images'
+          title: '🐳 Update Docker base images'
+          body: |
+            ## Docker Base Image Update
+            
+            This PR updates the Docker base images to their latest versions.
+            
+            ### Changes
+            - Updated Node.js Alpine base image
+            - Updated other base images as needed
+            
+            Please review and test before merging.
+          branch: deps/docker-updates
+          delete-branch: true
+          labels: |
+            docker
+            dependencies
+            automated
