@@ -32,15 +32,24 @@ export default function RevealPresentation({ slidesPath, title, onClose }: Revea
       const Reveal = (await import('reveal.js')).default;
       
       if (containerRef.current) {
+        // Validate slidesPath to prevent XSS
+        const safeSlidesPath = slidesPath.replace(/['"<>]/g, '');
+        
         // Create reveal container
         const revealDiv = document.createElement('div');
         revealDiv.className = 'reveal';
-        revealDiv.innerHTML = `
-          <div class="slides">
-            <section data-markdown="${slidesPath}" data-separator="^---$" data-separator-vertical="^--$">
-            </section>
-          </div>
-        `;
+        
+        // Use DOM methods instead of innerHTML for security
+        const slidesDiv = document.createElement('div');
+        slidesDiv.className = 'slides';
+        
+        const section = document.createElement('section');
+        section.setAttribute('data-markdown', safeSlidesPath);
+        section.setAttribute('data-separator', '^---$');
+        section.setAttribute('data-separator-vertical', '^--$');
+        
+        slidesDiv.appendChild(section);
+        revealDiv.appendChild(slidesDiv);
         containerRef.current.appendChild(revealDiv);
 
         // Initialize Reveal.js

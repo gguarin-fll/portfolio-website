@@ -23,6 +23,13 @@ spec:
         app: portfolio
         component: frontend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: nextjs
         image: your-registry/portfolio:latest
@@ -31,7 +38,8 @@ spec:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 1000
-          readOnlyRootFilesystem: false
+          runAsGroup: 1000
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
               - ALL
@@ -48,6 +56,11 @@ spec:
             configMapKeyRef:
               name: portfolio-config
               key: api-url
+        volumeMounts:
+        - name: nextjs-cache
+          mountPath: /app/.next/cache
+        - name: tmp
+          mountPath: /tmp
         resources:
           requests:
             memory: "256Mi"
@@ -71,5 +84,10 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
+      volumes:
+      - name: nextjs-cache
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
       imagePullSecrets:
       - name: registry-secret

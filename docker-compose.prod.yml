@@ -26,7 +26,7 @@ services:
       - redis-data:/data
     networks:
       - portfolio-network
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-defaultpassword}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD environment variable is required}
     restart: unless-stopped
 
   nginx:
