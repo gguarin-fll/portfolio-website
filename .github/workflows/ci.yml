@@ -145,7 +145,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/portfolio-website
+          images: gioguarin/portfolio-website
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -161,6 +161,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/portfolio-website:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/portfolio-website:buildcache,mode=max
+          cache-from: type=registry,ref=gioguarin/portfolio-website:buildcache
+          cache-to: type=registry,ref=gioguarin/portfolio-website:buildcache,mode=max
           platforms: linux/amd64,linux/arm64
