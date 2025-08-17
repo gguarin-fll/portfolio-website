@@ -9,31 +9,7 @@ on:
     - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM
 
 jobs:
-  # CodeQL Analysis
-  codeql:
-    name: CodeQL Analysis
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['javascript', 'typescript']
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
-      
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-      
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+  # CodeQL is now in a separate workflow (codeql.yml) to avoid duplication
 
   # Dependency Scanning
   dependency-scan:
@@ -182,7 +158,7 @@ jobs:
   security-summary:
     name: Security Summary
     runs-on: ubuntu-latest
-    needs: [codeql, dependency-scan, docker-scan, secret-scan, sast, license-check]
+    needs: [dependency-scan, docker-scan, secret-scan, sast, license-check]
     if: always()
     steps:
       - name: Security scan summary
@@ -191,7 +167,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Scan Type | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| CodeQL | ${{ needs.codeql.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Dependencies | ${{ needs.dependency-scan.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Docker | ${{ needs.docker-scan.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Secrets | ${{ needs.secret-scan.result }} |" >> $GITHUB_STEP_SUMMARY
