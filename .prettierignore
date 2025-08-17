@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+.next
+out
+build
+dist
+
+# Coverage
+coverage
+
+# Public
+public
+
+# Version control
+.git
+
+# Docker
+Dockerfile*
+
+# Kubernetes
+*.yaml
+*.yml
+
+# Markdown
+*.md
+
+# Cache
+.cache
+.turbo
+
+# Generated
+next-env.d.ts
+*.tsbuildinfo
+
+# Logs
+*.log

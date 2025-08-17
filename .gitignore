@@ -12,30 +12,159 @@
 
 # testing
 /coverage
+*.lcov
+.nyc_output
 
 # next.js
 /.next/
 /out/
+next-env.d.ts
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
 *.pem
+*.key
+*.crt
+*.cer
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+lerna-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files
+.env
+.env.*
+!.env.example
+!.env.template
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# OS files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# SSL certificates and keys
+/nginx/ssl/*.pem
+/nginx/ssl/*.key
+/nginx/ssl/*.crt
+!/nginx/ssl/README.md
+/nginx/ssl/backup/
+
+# Logs
+logs/
+*.log
+/var/log/
+
+# Redis
+dump.rdb
+redis-data/
+
+# Docker volumes
+docker-volumes/
+postgres-data/
+mysql-data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*.old
+
+# Build artifacts
+*.pid
+*.seed
+*.pid.lock
+
+# Package manager locks (keep these for reproducible builds)
+# Comment out if you want to ignore lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Performance and monitoring
+.lighthouseci/
+lighthouse-report/
+
+# Security scanning
+security-reports/
+vulnerability-reports/
+trivy-results.sarif
+
+# Cache directories
+.cache/
+.parcel-cache/
+.turbo/
+
+# Generated files
+generated/
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+public/fallback-*.js
+
+# Storybook
+storybook-static/
+out-storybook/
+
+# Documentation builds
+docs/_build/
+docs/.docusaurus/
+
+# Kubernetes secrets
+k8s/*-secret.yaml
+k8s/*-secrets.yaml
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+
+# Local environment
+.local/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
