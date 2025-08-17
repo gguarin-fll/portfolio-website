@@ -55,20 +55,24 @@ npm start
 
 ### Development
 ```bash
-# Build development image
-docker build -t portfolio:dev --target development .
+# Build and run with docker compose
+docker compose build
+docker compose up -d
 
-# Run with docker-compose
-docker-compose up
+# View logs
+docker compose logs -f
+
+# Stop containers
+docker compose down
 ```
 
 ### Production
 ```bash
 # Build production image
-docker build -t portfolio:latest --target production .
+docker compose -f docker-compose.prod.yml build
 
 # Run production stack
-docker-compose -f docker-compose.prod.yml up
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ## ☸️ Kubernetes Deployment
@@ -188,15 +192,77 @@ kubectl logs -f deployment/portfolio-frontend -n portfolio
 kubectl top pods -n portfolio
 ```
 
+## 🌐 Cloud Deployment (Linode/VPS)
+
+### Initial Setup
+```bash
+# SSH into your server
+ssh root@your-server-ip
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Clone repository
+git clone git@github.com:gguarin-fll/portfolio-website.git
+cd portfolio-website
+
+# Build and run
+docker compose build
+docker compose up -d
+```
+
+### Configure Nginx Reverse Proxy
+```bash
+# Install Nginx and Certbot
+apt update
+apt install nginx certbot python3-certbot-nginx -y
+
+# Create Nginx config
+cat > /etc/nginx/sites-available/portfolio << 'EOF'
+server {
+    listen 80;
+    server_name yourdomain.com www.yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+EOF
+
+# Enable site
+ln -s /etc/nginx/sites-available/portfolio /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t && systemctl reload nginx
+
+# Set up SSL
+certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
+
+### Updating the Application
+```bash
+# Pull latest changes
+git pull
+
+# Rebuild and restart
+docker compose build
+docker compose up -d
+```
+
 ## 🚀 Production Checklist
 
-- [ ] Update environment variables
-- [ ] Configure domain in ingress
-- [ ] Set up SSL certificates
-- [ ] Configure container registry
-- [ ] Update image tags in K8s manifests
+- [x] Deploy to cloud server (Linode/DigitalOcean/AWS)
+- [x] Configure domain DNS
+- [x] Set up Nginx reverse proxy
+- [x] Install SSL certificates with Certbot
+- [x] Configure firewall (ports 22, 80, 443)
 - [ ] Set up monitoring and alerts
-- [ ] Configure backup strategy
+- [ ] Configure automated backups
 - [ ] Test rollback procedures
 
 ## 📄 License
