@@ -64,10 +64,26 @@ jobs:
         run: npm ci
       
       - name: Run tests
-        run: npm test --if-present
+        run: |
+          if npm run | grep -q "test"; then
+            npm test
+            echo "test_run=true" >> $GITHUB_ENV
+          else
+            echo "No test script found, skipping tests"
+            echo "test_run=false" >> $GITHUB_ENV
+          fi
+      
+      - name: Check for coverage files
+        id: check_coverage
+        run: |
+          if [ -f "./coverage/lcov.info" ]; then
+            echo "coverage_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "coverage_exists=false" >> $GITHUB_OUTPUT
+          fi
       
       - name: Upload coverage reports
-        if: success()
+        if: steps.check_coverage.outputs.coverage_exists == 'true'
         continue-on-error: true
         uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238
         with:
