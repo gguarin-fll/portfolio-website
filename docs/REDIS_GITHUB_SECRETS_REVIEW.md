@@ -62,7 +62,8 @@ Your configuration is now properly set up for secure deployment:
 
 You only need ONE secret for Redis:
 ```
-REDIS_URL=redis://portfolio_app:<somepassword>@redis-database.com:port
+REDIS_URL=<store_in_github_secrets>
 ```
+Format: `redis://username:password@host:port`
 
 No additional Redis secrets required!
