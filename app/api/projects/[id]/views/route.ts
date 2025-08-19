@@ -3,10 +3,10 @@ import { incrementCounter, getCounter } from '@/lib/redis';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const projectId = params.id;
+    const { id: projectId } = await params;
     const viewKey = `project:${projectId}:views`;
     
     const newCount = await incrementCounter(viewKey);
@@ -27,10 +27,10 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const projectId = params.id;
+    const { id: projectId } = await params;
     const viewKey = `project:${projectId}:views`;
     
     const count = await getCounter(viewKey);

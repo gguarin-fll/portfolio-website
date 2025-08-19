@@ -5,14 +5,17 @@ A modern, containerized portfolio website built with Next.js, featuring Reveal.j
 ## 🚀 Features
 
 ### Core Features
-- **Modern Tech Stack**: Next.js 14, TypeScript, Tailwind CSS
+- **Modern Tech Stack**: Next.js 15, TypeScript, Tailwind CSS
+- **Redis Caching**: High-performance caching with Redis Cloud integration
+- **View Tracking**: Real-time project view counting and analytics
 - **Presentations**: Integrated Reveal.js for interactive presentations
-- **Data Visualization**: Charts and analytics with Chart.js
+- **Data Visualization**: Charts and analytics with Chart.js and Recharts
 - **Container Ready**: Docker and Kubernetes configurations included
 - **Responsive Design**: Mobile-first approach with dark mode support
 
 ### DevOps & Security
-- **CI/CD Pipeline**: 11 GitHub Actions workflows for complete automation
+- **CI/CD Pipeline**: 12 GitHub Actions workflows for complete automation
+- **Redis Security**: ACL-based access control with restricted user permissions
 - **Security Scanning**: Comprehensive vulnerability detection (CodeQL, Trivy, Semgrep, Snyk)
 - **Container Security**: Multi-stage builds, non-root user, security contexts
 - **SSL/TLS Management**: Let's Encrypt integration with auto-renewal
@@ -38,14 +41,24 @@ npm run dev
 ## 📁 Project Structure
 
 ```
-├── .github/workflows/     # CI/CD pipelines (11 workflows)
+├── .github/workflows/     # CI/CD pipelines (12 workflows)
 ├── app/                   # Next.js app directory
 │   ├── api/              # API routes
+│   │   ├── cache/        # Cache management endpoints
+│   │   ├── health/       # Health check endpoints
+│   │   ├── monitor/      # Redis monitoring
+│   │   ├── portfolio/    # Cached portfolio data
+│   │   └── projects/     # Project views and stats
 │   ├── analytics/        # Analytics page
 │   ├── presentations/    # Presentations page
 │   └── projects/         # Projects page
 ├── components/           # React components
+├── config/               # Configuration files
 ├── data/                 # Portfolio data
+├── hooks/                # Custom React hooks
+├── lib/                  # Utility libraries
+│   ├── redis.ts          # Redis client
+│   └── redis-optimized.ts # Optimized Redis client
 ├── k8s/                  # Kubernetes manifests
 ├── nginx/                # Nginx configuration
 ├── public/               # Static assets
@@ -59,6 +72,7 @@ npm run dev
 ### Prerequisites
 - Node.js 20+
 - npm or yarn
+- Redis 7+ (or Redis Cloud account)
 - Docker (optional for containerized development)
 
 ### Local Development
@@ -84,7 +98,11 @@ Create `.env.local` for development:
 
 ```env
 # Redis Configuration (REQUIRED in production)
-REDIS_PASSWORD=your_secure_redis_password_here
+# Use a restricted user (not default) for security
+REDIS_URL=redis://portfolio_app:your_password@your-redis-host:port
+
+# For local development:
+# REDIS_URL=redis://localhost:6379
 
 # Application Configuration (optional)
 NEXT_PUBLIC_API_URL=https://api.yourportfolio.com
@@ -92,7 +110,7 @@ NEXT_PUBLIC_ANALYTICS_ID=your-analytics-id
 NODE_ENV=production
 ```
 
-**Important**: `REDIS_PASSWORD` is required in production. The application will fail to start without it.
+**Important**: `REDIS_URL` is required in production. Use a restricted Redis user with minimal permissions for security.
 
 ## 📊 Content Management
 
@@ -144,6 +162,39 @@ Configure charts in `data/portfolio-data.ts`:
 - **Global Styles**: `app/globals.css`
 - **Component Styles**: Use Tailwind classes inline
 
+## 🔴 Redis Configuration
+
+### Redis Cloud Setup
+The application uses Redis for caching and view tracking:
+
+1. **Create Redis Cloud Account**: Sign up at [Redis Cloud](https://redis.com/cloud/)
+2. **Create Database**: Choose the free 30MB tier for portfolios
+3. **Create Restricted User**: 
+   - Username: `portfolio_app`
+   - Permissions: Read/Write (no admin commands)
+   - ACL Rules: Block `FLUSHDB`, `FLUSHALL`, `CONFIG`
+4. **Get Connection String**: `redis://portfolio_app:password@host:port`
+
+### Local Redis Development
+```bash
+# Using Docker
+docker run -d -p 6379:6379 redis:7-alpine
+
+# Using Homebrew (macOS)
+brew install redis
+redis-server
+
+# Set local environment variable
+export REDIS_URL=redis://localhost:6379
+```
+
+### Redis Features
+- **Portfolio Data Caching**: 1-hour TTL for static data
+- **View Counting**: Persistent tracking for projects
+- **API Response Caching**: 5-minute TTL for dynamic data
+- **Performance Monitoring**: Cache hit/miss tracking
+- **Connection Pooling**: Optimized for serverless functions
+
 ## 🐳 Docker Deployment
 
 ### Development Environment
@@ -162,19 +213,20 @@ docker compose down
 ### Production Environment
 ```bash
 # Set required environment variables
-export REDIS_PASSWORD=your_secure_password
+export REDIS_URL=redis://portfolio_app:your_password@redis-cloud-host:port
 
 # Build production image
 docker compose -f docker-compose.prod.yml build
 
-# Run production stack (includes Nginx, Redis, Next.js)
+# Run production stack
 docker compose -f docker-compose.prod.yml up -d
 ```
 
 The production stack includes:
 - Next.js application (port 3000)
-- Redis cache with password authentication
+- Redis Cloud connection with ACL security
 - Nginx with SSL/TLS termination (ports 80, 443)
+- Real-time view tracking and caching
 
 ## ☸️ Kubernetes Deployment
 
@@ -258,7 +310,7 @@ certbot certonly --standalone \
 ### Deploy to Production
 ```bash
 # Set environment variables
-export REDIS_PASSWORD=your_secure_password
+export REDIS_URL=redis://portfolio_app:your_password@redis-cloud-host:port
 
 # Build and deploy
 docker compose -f docker-compose.prod.yml build
@@ -300,13 +352,21 @@ docker compose -f docker-compose.prod.yml logs -f
 ### Required GitHub Secrets
 Configure in Settings → Secrets and variables → Actions:
 
+#### Required Secrets
+- `REDIS_URL`: Full Redis connection string with restricted user
+  - Format: `redis://portfolio_app:password@host:port`
+  - Example: `redis://portfolio_app:pass123@redis-cloud.com:14652`
 - `DOCKER_USERNAME`: Docker Hub username
 - `DOCKER_PASSWORD`: Docker Hub access token
-- `REDIS_PASSWORD`: Redis password for production
-- `KUBECONFIG`: Base64 encoded kubeconfig (optional, for K8s)
-- `CODECOV_TOKEN`: Code coverage reporting (optional)
-- `SNYK_TOKEN`: Vulnerability scanning (optional)
-- `SLACK_WEBHOOK`: Deployment notifications (optional)
+
+#### Optional Secrets
+- `KUBECONFIG`: Base64 encoded kubeconfig (for K8s deployments)
+- `CODECOV_TOKEN`: Code coverage reporting
+- `SNYK_TOKEN`: Vulnerability scanning
+- `SLACK_WEBHOOK`: Deployment notifications
+- `SERVER_HOST`: Production server IP/hostname
+- `SERVER_USER`: SSH username for deployment
+- `SSH_PRIVATE_KEY`: SSH key for server access
 
 ## 🔒 Security Features
 
@@ -318,6 +378,7 @@ Configure in Settings → Secrets and variables → Actions:
 - **Certificate Rotation**: Automated with backup and rollback
 
 ### Application Security
+- **Redis ACL**: Restricted user with minimal permissions (no FLUSH/CONFIG)
 - **Container Hardening**: Non-root user, read-only filesystem
 - **Kubernetes Security**: Pod security contexts, seccomp profiles
 - **Secret Management**: Environment variable validation, no hardcoded secrets
@@ -332,9 +393,37 @@ Configure in Settings → Secrets and variables → Actions:
 
 ## 🔧 Monitoring & Health
 
-### Health Check Endpoint
+### API Endpoints
+
+#### Health Checks
 ```bash
+# Application health
 curl http://localhost:3000/api/health
+
+# Redis connectivity check
+curl http://localhost:3000/api/health/redis
+```
+
+#### Redis Monitoring
+```bash
+# Detailed Redis metrics and alerts
+curl http://localhost:3000/api/monitor/redis
+
+# Project statistics and view counts
+curl http://localhost:3000/api/projects/stats
+
+# Get cached portfolio data
+curl http://localhost:3000/api/portfolio
+```
+
+#### Cache Management
+```bash
+# Clear all cache entries (admin only)
+curl -X POST http://localhost:3000/api/cache/clear
+
+# Track project views
+curl -X POST http://localhost:3000/api/projects/{id}/views
+curl http://localhost:3000/api/projects/{id}/views
 ```
 
 ### Docker Logs
@@ -355,6 +444,13 @@ docker compose -f docker-compose.prod.yml logs -f portfolio
 openssl x509 -in /etc/letsencrypt/live/yourdomain.com/cert.pem -text -noout
 ```
 
+### Redis Monitoring Dashboard
+The `/api/monitor/redis` endpoint provides:
+- Memory usage with alerts (>80% triggers warning)
+- Cache hit/miss ratio (target >70%)
+- Connection count monitoring (alert >50)
+- Real-time performance metrics
+
 ## 📋 Production Checklist
 
 - [x] Deploy to cloud server (Linode/DigitalOcean/AWS)
@@ -364,8 +460,10 @@ openssl x509 -in /etc/letsencrypt/live/yourdomain.com/cert.pem -text -noout
 - [x] Configure automatic certificate renewal
 - [x] Set up security headers and rate limiting
 - [x] Configure firewall (ports 22, 80, 443)
-- [x] Set REDIS_PASSWORD environment variable
-- [ ] Set up monitoring and alerts
+- [x] Set up Redis Cloud with restricted user
+- [x] Configure REDIS_URL with ACL permissions
+- [x] Implement Redis monitoring endpoints
+- [ ] Set up alerting for Redis metrics
 - [ ] Configure automated backups
 - [ ] Test disaster recovery procedures
 

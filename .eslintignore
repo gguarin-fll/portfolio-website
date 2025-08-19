@@ -1,0 +1,98 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Environment files
+.env*
+!.env.example
+!.env.template
+
+# Generated files
+next-env.d.ts
+*.tsbuildinfo
+
+# Cache directories
+.cache/
+.parcel-cache/
+.turbo/
+
+# Public assets
+public/
+
+# Version control
+.git/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Kubernetes
+k8s/
+*.yaml
+*.yml
+
+# Documentation
+*.md
+docs/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cer
+
+# Logs
+*.log
+logs/
+
+# Security reports
+security-reports/
+vulnerability-reports/
+trivy-results.sarif
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+
+# Redis dumps
+dump.rdb
+redis-data/
+appendonly.aof
+
+# Scripts (if they don't need linting)
+scripts/
+
+# Performance reports
+.lighthouseci/
+lighthouse-report/

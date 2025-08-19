@@ -1,0 +1,174 @@
+name: Redis Security Check
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2am
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  redis-config-check:
+    name: Redis Configuration Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      
+      - name: Check Redis password strength
+        run: |
+          # Check if REDIS_PASSWORD is configured in workflows
+          echo "Checking Redis password configuration..."
+          
+          # Verify Redis URL format doesn't expose passwords in logs
+          grep -r "REDIS_URL" .github/workflows/ | grep -v "secrets" | grep -v "localhost" || true
+          
+          # Check for hardcoded Redis passwords
+          if grep -r "redis://[^:]*:[^@]*@" . --exclude-dir=.git --exclude-dir=node_modules --exclude="*.yml"; then
+            echo "::error::Found hardcoded Redis credentials!"
+            exit 1
+          fi
+          
+      - name: Redis connection security audit
+        run: |
+          # Check for TLS/SSL configuration
+          echo "Checking for Redis TLS configuration..."
+          
+          # Verify Redis connection uses TLS in production
+          if grep -r "rediss://" . --include="*.ts" --include="*.js" --include="*.env.example"; then
+            echo "✅ Redis TLS configuration found"
+          else
+            echo "::warning::Consider using TLS for Redis connections (rediss://)"
+          fi
+          
+      - name: Check Redis ACL configuration
+        run: |
+          # Check if Redis ACL is mentioned in configuration
+          echo "Checking for Redis ACL usage..."
+          
+          if grep -r "ACL\|requirepass\|masterauth" . --include="*.conf" --include="docker-compose*.yml"; then
+            echo "✅ Redis authentication configuration found"
+          else
+            echo "::warning::Consider implementing Redis ACL for better security"
+          fi
+
+  redis-vulnerability-scan:
+    name: Redis Vulnerability Scan
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          REDIS_PASSWORD: testpassword123
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      
+      - name: Install Redis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-tools
+          
+      - name: Test Redis security
+        run: |
+          # Test for common Redis misconfigurations
+          echo "Testing Redis security configuration..."
+          
+          # Check if Redis is protected
+          if redis-cli -h localhost ping 2>/dev/null; then
+            echo "::warning::Redis is accessible without authentication"
+          fi
+          
+          # Check dangerous commands
+          DANGEROUS_COMMANDS="FLUSHDB FLUSHALL KEYS CONFIG"
+          for cmd in $DANGEROUS_COMMANDS; do
+            if redis-cli -h localhost $cmd 2>/dev/null | grep -q "ERR"; then
+              echo "✅ Command $cmd is restricted"
+            else
+              echo "::warning::Dangerous command $cmd is not restricted"
+            fi
+          done
+          
+      - name: Check Redis data persistence
+        run: |
+          # Verify Redis persistence configuration
+          echo "Checking Redis persistence settings..."
+          
+          if grep -r "save\|appendonly" docker-compose*.yml k8s/; then
+            echo "✅ Redis persistence configuration found"
+          else
+            echo "::warning::Consider configuring Redis persistence for data durability"
+          fi
+
+  redis-compliance-check:
+    name: Redis Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      
+      - name: Check Redis data encryption
+        run: |
+          echo "Checking for Redis data encryption requirements..."
+          
+          # Check for encryption at rest
+          if grep -r "encryption\|encrypted" . --include="*.md" --include="*.yml" --include="*.yaml"; then
+            echo "✅ Encryption documentation found"
+          else
+            echo "::warning::Document Redis encryption strategy"
+          fi
+          
+      - name: Check Redis backup strategy
+        run: |
+          echo "Checking for Redis backup configuration..."
+          
+          # Look for backup scripts or configurations
+          if find . -name "*backup*" -o -name "*snapshot*" | grep -i redis; then
+            echo "✅ Redis backup configuration found"
+          else
+            echo "::warning::Implement Redis backup strategy"
+          fi
+          
+      - name: Generate security report
+        run: |
+          cat > redis-security-report.md << EOF
+          # Redis Security Report
+          
+          ## Date: $(date)
+          
+          ### Security Checks Performed:
+          - [x] Password configuration audit
+          - [x] TLS/SSL configuration check
+          - [x] ACL configuration review
+          - [x] Vulnerability scanning
+          - [x] Dangerous command restrictions
+          - [x] Data persistence verification
+          - [x] Encryption compliance check
+          - [x] Backup strategy review
+          
+          ### Recommendations:
+          1. Use strong passwords (minimum 32 characters)
+          2. Enable TLS for production connections
+          3. Implement Redis ACL for fine-grained access control
+          4. Restrict dangerous commands in production
+          5. Configure appropriate persistence settings
+          6. Implement regular backup procedures
+          7. Monitor Redis logs for suspicious activity
+          
+          EOF
+          
+      - name: Upload security report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: redis-security-report
+          path: redis-security-report.md
+          retention-days: 30
