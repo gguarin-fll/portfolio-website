@@ -60,7 +60,7 @@ redis-cli -u $REDIS_URL eval "return redis.call('FLUSHDB')" 0
 
 ## Environment Variables to Add:
 ```bash
-# GitHub Secrets
-REDIS_URL=redis://portfolio_app:secure_password@host:port
-REDIS_READ_ONLY_URL=redis://readonly_user:password@host:port  # For analytics
+# GitHub Secrets (store actual values in GitHub Secrets, not in code)
+REDIS_URL=<redacted>  # Format: redis://username:password@host:port
+REDIS_READ_ONLY_URL=<redacted>  # Optional: for read-only analytics
 ```

@@ -357,8 +357,8 @@ Configure in Settings → Secrets and variables → Actions:
 
 #### Required Secrets
 - `REDIS_URL`: Full Redis connection string with restricted user
-  - Format: `redis://portfolio_app:password@host:port`
-  - Example: `redis://portfolio_app:pass123@redis-cloud.com:14652`
+  - Format: `redis://username:password@host:port`
+  - Example: `redis://portfolio_app:<your_password>@<your_redis_host>:port`
 - `DOCKER_USERNAME`: Docker Hub username
 - `DOCKER_PASSWORD`: Docker Hub access token
 - `CLAUDE_CODE_OAUTH_TOKEN`: Claude Code GitHub App OAuth token

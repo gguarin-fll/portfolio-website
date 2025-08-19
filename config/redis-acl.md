@@ -22,10 +22,10 @@ ACL SETUSER portfolio_app on >your_secure_password_here ~* &* +ping +get +set +i
 3. **Update Connection String**
    ```bash
    # Old (using default user - INSECURE)
-   REDIS_URL=redis://default:password@host:port
+   REDIS_URL=redis://default:<password>@<host>:<port>
    
    # New (using restricted user - SECURE)
-   REDIS_URL=redis://portfolio_app:new_password@host:port
+   REDIS_URL=redis://portfolio_app:<password>@<host>:<port>
    ```
 
 ## Keyspace Permissions Breakdown:
