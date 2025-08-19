@@ -24,6 +24,10 @@ playwright/.cache/
 .env.*
 !.env.example
 !.env.template
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Version Control
 .git
@@ -103,3 +107,22 @@ lighthouse-report/
 security-reports/
 vulnerability-reports/
 trivy-results.sarif
+
+# Redis data and dumps
+dump.rdb
+redis-data/
+appendonly.aof
+
+# Editor and IDE temporary files
+*.swn
+*.swr
+.#*
+\#*#
+.DS_Store?
+
+# Development and testing utilities
+coverage-final.json
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/

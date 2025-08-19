@@ -39,3 +39,23 @@ next-env.d.ts
 
 # Logs
 *.log
+
+# Environment files
+.env*
+!.env.example
+!.env.template
+
+# SSL and certificates
+*.pem
+*.key
+*.crt
+*.cer
+
+# Security and vulnerability reports
+security-reports/
+vulnerability-reports/
+trivy-results.sarif
+
+# Redis dumps
+dump.rdb
+appendonly.aof
