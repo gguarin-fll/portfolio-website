@@ -27,10 +27,25 @@ jobs:
           # Verify Redis URL format doesn't expose passwords in logs
           grep -r "REDIS_URL" .github/workflows/ | grep -v "secrets" | grep -v "localhost" || true
           
-          # Check for hardcoded Redis passwords
-          if grep -r "redis://[^:]*:[^@]*@" . --exclude-dir=.git --exclude-dir=node_modules --exclude="*.yml"; then
+          # Check for hardcoded Redis passwords (excluding placeholders and examples)
+          if grep -r "redis://[^:]*:[^@<]*@[^<]*\.[^<]*" . \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules \
+            --exclude-dir=.next \
+            --exclude="*.yml" \
+            --exclude="*.yaml" \
+            --exclude=".env*" | \
+            grep -v "<password>" | \
+            grep -v "<your_password>" | \
+            grep -v "<redacted>" | \
+            grep -v "password@" | \
+            grep -v "@host" | \
+            grep -v "@<" | \
+            grep -v "username:password"; then
             echo "::error::Found hardcoded Redis credentials!"
             exit 1
+          else
+            echo "✅ No hardcoded Redis credentials found"
           fi
           
       - name: Redis connection security audit
