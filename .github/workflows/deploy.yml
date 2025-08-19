@@ -20,7 +20,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   REDIS_URL: ${{ secrets.REDIS_URL }}
-  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
 jobs:
   deploy:
