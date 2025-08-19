@@ -63,8 +63,23 @@ export function useProjectViews(projectId: string): UseProjectViewsReturn {
   };
 }
 
+type ProjectStat = {
+  id: string;
+  title: string;
+  views: number;
+  featured?: boolean;
+};
+
+type StatsResult = {
+  totalViews: number;
+  projectCount: number;
+  popularProjects: ProjectStat[];
+  allProjects: ProjectStat[];
+  timestamp: string;
+};
+
 export function useProjectStats() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<StatsResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 

@@ -2,11 +2,26 @@ import { NextResponse } from 'next/server';
 import { projects } from '@/data/portfolio-data';
 import { getCounter, getCachedData, setCachedData, CACHE_TTL } from '@/lib/redis';
 
+type ProjectStat = {
+  id: string;
+  title: string;
+  views: number;
+  featured?: boolean;
+};
+
+type StatsResult = {
+  totalViews: number;
+  projectCount: number;
+  popularProjects: ProjectStat[];
+  allProjects: ProjectStat[];
+  timestamp: string;
+};
+
 const CACHE_KEY = 'projects:stats';
 
 export async function GET() {
   try {
-    const cachedStats = await getCachedData<any>(CACHE_KEY);
+    const cachedStats = await getCachedData<StatsResult>(CACHE_KEY);
     
     if (cachedStats) {
       return NextResponse.json(cachedStats, {

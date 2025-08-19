@@ -19,7 +19,7 @@ export default function ProjectViewCounter({
     if (autoIncrement) {
       incrementView();
     }
-  }, [autoIncrement]);
+  }, [autoIncrement, incrementView]);
 
   if (loading) {
     return (
