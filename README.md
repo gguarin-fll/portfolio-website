@@ -14,7 +14,7 @@ A modern, containerized portfolio website built with Next.js, featuring Reveal.j
 - **Responsive Design**: Mobile-first approach with dark mode support
 
 ### DevOps & Security
-- **CI/CD Pipeline**: 12 GitHub Actions workflows for complete automation
+- **CI/CD Pipeline**: 14 GitHub Actions workflows for complete automation
 - **Redis Security**: ACL-based access control with restricted user permissions
 - **Security Scanning**: Comprehensive vulnerability detection (CodeQL, Trivy, Semgrep, Snyk)
 - **Container Security**: Multi-stage builds, non-root user, security contexts
@@ -41,7 +41,7 @@ npm run dev
 ## 📁 Project Structure
 
 ```
-├── .github/workflows/     # CI/CD pipelines (12 workflows)
+├── .github/workflows/     # CI/CD pipelines (14 workflows)
 ├── app/                   # Next.js app directory
 │   ├── api/              # API routes
 │   │   ├── cache/        # Cache management endpoints
@@ -343,11 +343,14 @@ docker compose -f docker-compose.prod.yml logs -f
 - **Security Scanning** (`security.yml`): Comprehensive vulnerability detection
 - **Pull Request Checks** (`pr-checks.yml`): Validates all pull requests
 - **Release Management** (`release.yml`): Automated versioning and changelog
+- **Claude Code Review** (`claude-code-review.yml`): AI-powered PR reviews
+- **Claude Assistant** (`claude.yml`): Interactive AI assistance via @claude
 
 #### Maintenance Workflows
 - **Dependency Updates** (`dependency-update.yml`): Weekly automated updates
 - **Resource Cleanup** (`cleanup.yml`): Removes old artifacts and images
 - **Action Pinning** (`pin-actions.yml`): Security hardening for actions
+- **Redis Security** (`redis-security.yml`): Redis configuration auditing
 
 ### Required GitHub Secrets
 Configure in Settings → Secrets and variables → Actions:
@@ -358,6 +361,8 @@ Configure in Settings → Secrets and variables → Actions:
   - Example: `redis://portfolio_app:pass123@redis-cloud.com:14652`
 - `DOCKER_USERNAME`: Docker Hub username
 - `DOCKER_PASSWORD`: Docker Hub access token
+- `CLAUDE_CODE_OAUTH_TOKEN`: Claude Code GitHub App OAuth token
+  - Get from: https://github.com/apps/claude-code
 
 #### Optional Secrets
 - `KUBECONFIG`: Base64 encoded kubeconfig (for K8s deployments)
