@@ -1,7 +1,29 @@
-import { projects } from '@/data/portfolio-data';
+'use client';
+
+import { usePortfolioData } from '@/hooks/usePortfolioData';
+import ProjectViewCounter from '@/components/ProjectViewCounter';
 import { Github, ExternalLink } from 'lucide-react';
 
 export default function ProjectsPage() {
+  const { data, loading, error } = usePortfolioData();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading projects...</div>
+      </div>
+    );
+  }
+  
+  if (error || !data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-red-600">Failed to load projects</div>
+      </div>
+    );
+  }
+  
+  const { projects } = data;
   return (
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-950">
       <div className="max-w-7xl mx-auto">
@@ -55,6 +77,10 @@ export default function ProjectsPage() {
                       +{project.technologies.length - 4}
                     </span>
                   )}
+                </div>
+                
+                <div className="mb-4">
+                  <ProjectViewCounter projectId={project.id} />
                 </div>
 
                 <div className="flex items-center gap-4">
