@@ -29,7 +29,7 @@ jobs:
       actions: write
     steps:
       - name: Delete old artifacts
-        uses: actions/github-script@5c56fde4671bc2d3592fb0f2c5b5bab9ddae03b1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           script: |
             const owner = context.repo.owner;
